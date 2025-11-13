@@ -1,0 +1,1912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduSwap - Samskruti College</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    }
+    
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+    }
+    
+    .nav-item {
+      transition: all 0.2s ease;
+    }
+    
+    .nav-item.active {
+      color: #667eea;
+    }
+    
+    .trust-badge {
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #333;
+      font-weight: bold;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+    }
+    
+    .status-pending {
+      background: #fbbf24;
+      color: white;
+    }
+    
+    .status-approved {
+      background: #10b981;
+      color: white;
+    }
+    
+    .status-rejected {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .dm-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 999;
+      background: #667eea;
+      color: white;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+    }
+    
+    .dm-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .resource-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    
+    .filter-chip {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 2px solid #e5e7eb;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: white;
+    }
+    
+    .filter-chip.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+    
+    .upload-zone {
+      border: 3px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .upload-zone:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50">
+  <!-- LOGIN/SIGNUP PAGE -->
+  <div id="authPage" class="h-full min-h-screen flex items-center justify-center gradient-bg p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+      <div class="text-center mb-8">
+        <div class="w-20 h-20 bg-purple-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+          <i class="fas fa-share-nodes text-4xl text-purple-600"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">EduSwap</h1>
+        <p class="text-gray-600 font-medium">Samskruti College of Engineering and Technology</p>
+        <p class="text-sm text-gray-500 italic mt-2">"Share Knowledge, Build Community"</p>
+      </div>
+      
+      <!-- Login/Signup Tabs -->
+      <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
+        <button id="loginTab" class="flex-1 py-2 rounded-md font-medium transition-all bg-white shadow">Login</button>
+        <button id="signupTab" class="flex-1 py-2 rounded-md font-medium transition-all text-gray-600">Sign Up</button>
+      </div>
+      
+      <!-- Login Form -->
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+          <input type="email" id="loginEmail" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="your.email@samskruti.ac.in">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+          <input type="password" id="loginPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Enter your password">
+        </div>
+        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-all">Login</button>
+      </form>
+      
+      <!-- Signup Form -->
+      <form id="signupForm" class="space-y-4 hidden">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+          <input type="text" id="signupName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="John Doe">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+          <input type="email" id="signupEmail" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="your.email@samskruti.ac.in">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+          <input type="password" id="signupPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Create a password (min 6 chars)">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Student/Staff ID</label>
+          <input type="text" id="signupId" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="Enter your ID">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Upload ID Card (for verification)</label>
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-500 transition-all cursor-pointer" onclick="document.getElementById('idCardInput').click()">
+            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+            <p class="text-sm text-gray-600" id="idCardUploadText">Click to upload ID card image</p>
+            <p class="text-xs text-green-600 mt-2 hidden" id="idCardFileName"></p>
+            <input type="file" id="idCardInput" class="hidden" accept="image/jpeg,image/jpg,image/png">
+          </div>
+        </div>
+        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-all">Create Account</button>
+        <p class="text-xs text-gray-500 text-center">By signing up, you agree to our Terms & Conditions</p>
+      </form>
+    </div>
+  </div>
+  
+  <!-- MAIN APP -->
+  <div id="mainApp" class="hidden pb-20">
+    <!-- DM Button -->
+    <div class="dm-button" onclick="openDM()">
+      <i class="fas fa-comments text-xl"></i>
+      <span class="notification-badge" id="dmBadge">3</span>
+    </div>
+    
+    <!-- FEED PAGE -->
+    <div id="feedPage" class="max-w-2xl mx-auto p-4">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Resource Feed</h2>
+        <!-- Search Bar with Filter Icon -->
+        <div class="relative mb-4 flex gap-2">
+          <div class="relative flex-1">
+            <input type="text" id="searchInput" placeholder="Search resources..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+            <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+          </div>
+          <button onclick="toggleFilters()" class="px-4 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
+            <i class="fas fa-filter text-gray-600"></i>
+          </button>
+        </div>
+        <!-- Subject Filters (collapsible) -->
+        <div id="filterSection" class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-semibold text-gray-700">Filter by Subject</h3>
+            <button onclick="clearFilters()" class="text-xs text-purple-600 hover:text-purple-800">Clear All</button>
+          </div>
+          <div id="filterChipsContainer" class="flex gap-2 overflow-x-auto pb-2">
+            <div class="filter-chip active" data-filter="all">
+              <i class="fas fa-list mr-1"></i>All
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Resource Cards -->
+      <div id="resourceContainer">
+        <!-- Cards will be dynamically generated -->
+      </div>
+    </div>
+    
+    <!-- UPLOAD PAGE -->
+    <div id="uploadPage" class="hidden max-w-2xl mx-auto p-4">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Share a Resource</h2>
+      <form id="uploadForm" class="bg-white rounded-xl shadow-lg p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Resource Title</label>
+          <input type="text" id="resourceTitle" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Subject Category</label>
+          <input type="text" id="subjectInput" list="subjectSuggestions" placeholder="Enter or select a subject" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" required>
+          <datalist id="subjectSuggestions">
+            <option value="Computer Science">
+            <option value="Mathematics">
+            <option value="Physics">
+            <option value="Electronics">
+            <option value="Chemistry">
+            <option value="Mechanical">
+            <option value="Civil Engineering">
+            <option value="Electrical Engineering">
+            <option value="Biology">
+            <option value="English">
+            <option value="History">
+          </datalist>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+          <textarea id="resourceDescription" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Resource Type</label>
+          <select id="resourceType" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+            <option value="digital">Digital (PDF, Notes, etc.)</option>
+            <option value="physical">Physical (Books, Equipment, etc.)</option>
+          </select>
+        </div>
+        <div id="physicalOptions" class="space-y-4 hidden">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <input type="text" id="resourceLocation" placeholder="e.g., Library, Room 203" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Return Deadline</label>
+            <input type="date" id="resourceDeadline" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+          </div>
+        </div>
+        <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+          <i class="fas fa-file-upload text-4xl text-gray-400 mb-2"></i>
+          <p class="text-gray-600" id="fileUploadText">Click to upload file or drag and drop</p>
+          <p class="text-xs text-gray-500 mt-2" id="selectedFileName"></p>
+          <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="hidden">
+        </div>
+        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-all">Share Resource</button>
+      </form>
+    </div>
+    
+    <!-- CHATBOT PAGE -->
+    <div id="chatbotPage" class="hidden max-w-2xl mx-auto p-4 h-screen">
+      <h2 class="text-2xl font-bold text-gray-800 mb-4">AI Assistant</h2>
+      <div class="bg-white rounded-xl shadow-lg h-[calc(100vh-12rem)] flex flex-col">
+        <div id="chatbotMessages" class="flex-1 p-4 overflow-y-auto space-y-3">
+          <div class="bg-purple-100 rounded-lg p-3 max-w-[80%]">
+            <p class="text-sm text-gray-800">Hello! I'm your EduSwap assistant. How can I help you today?</p>
+          </div>
+        </div>
+        <div class="p-4 border-t">
+          <div class="flex gap-2">
+            <input type="text" id="chatInput" placeholder="Type your message..." class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+            <button onclick="sendMessage()" class="bg-purple-600 text-white px-6 rounded-lg hover:bg-purple-700">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- NOTIFICATIONS PAGE -->
+    <div id="notificationsPage" class="hidden max-w-2xl mx-auto p-4">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Notifications</h2>
+      <div id="notificationsList" class="space-y-3">
+        <!-- Notifications will be dynamically generated -->
+      </div>
+    </div>
+    
+    <!-- PROFILE PAGE -->
+    <div id="profilePage" class="hidden max-w-2xl mx-auto p-4">
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div class="flex items-center mb-6">
+          <div class="w-20 h-20 bg-purple-200 rounded-full flex items-center justify-center text-2xl font-bold text-purple-600" id="profileInitials">
+            JD
+          </div>
+          <div class="ml-4">
+            <h3 class="text-xl font-bold text-gray-800" id="profileName">John Doe</h3>
+            <p class="text-gray-600 font-mono" id="profileId">Roll: 21CS089</p>
+            <div class="trust-badge mt-2">
+              Trust Score: <span id="trustScore">95</span>/100
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4 py-4 border-t border-b">
+          <div class="text-center">
+            <p class="text-2xl font-bold text-purple-600" id="sharedCount">0</p>
+            <p class="text-sm text-gray-600">Shared</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-purple-600" id="borrowedCount">0</p>
+            <p class="text-sm text-gray-600">Borrowed</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-purple-600" id="savedCount">0</p>
+            <p class="text-sm text-gray-600">Saved</p>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-3">
+        <button onclick="showSavedItems()" class="w-full bg-white rounded-lg shadow p-4 flex items-center justify-between hover:bg-gray-50">
+          <span class="flex items-center gap-3">
+            <i class="fas fa-bookmark text-purple-600"></i>
+            <span class="font-medium">Saved Items</span>
+          </span>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </button>
+        <button onclick="showTerms()" class="w-full bg-white rounded-lg shadow p-4 flex items-center justify-between hover:bg-gray-50">
+          <span class="flex items-center gap-3">
+            <i class="fas fa-file-contract text-purple-600"></i>
+            <span class="font-medium">Terms & Conditions</span>
+          </span>
+          <i class="fas fa-chevron-right text-gray-400"></i>
+        </button>
+        <button onclick="logout()" class="w-full bg-white rounded-lg shadow p-4 flex items-center justify-between hover:bg-red-50">
+          <span class="flex items-center gap-3 text-red-600">
+            <i class="fas fa-sign-out-alt"></i>
+            <span class="font-medium">Logout</span>
+          </span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- ADMIN DASHBOARD -->
+    <div id="adminPage" class="hidden max-w-6xl mx-auto p-4">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Admin Dashboard</h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow" onclick="showAllUsers()">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">Total Users</p>
+              <p class="text-3xl font-bold text-purple-600" id="totalUsersCount">0</p>
+            </div>
+            <i class="fas fa-users text-4xl text-purple-200"></i>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow" onclick="showActiveResources()">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">Active Resources</p>
+              <p class="text-3xl font-bold text-green-600" id="activeResourcesCount">0</p>
+            </div>
+            <i class="fas fa-box text-4xl text-green-200"></i>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow" onclick="showPendingVerifications()">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">Pending Verifications</p>
+              <p class="text-3xl font-bold text-yellow-600" id="verificationCountDisplay">0</p>
+            </div>
+            <i class="fas fa-clock text-4xl text-yellow-200"></i>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow" onclick="showReports()">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-600 text-sm">Reports</p>
+              <p class="text-3xl font-bold text-red-600" id="reportsCount">0</p>
+            </div>
+            <i class="fas fa-flag text-4xl text-red-200"></i>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <h3 class="text-lg font-bold text-gray-800 mb-4">ID Verification Queue</h3>
+          <div id="verificationQueue" class="space-y-3">
+            <!-- Verification items will be added here -->
+          </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-lg p-6">
+          <h3 class="text-lg font-bold text-gray-800 mb-4">Send Notification</h3>
+          <form id="adminNotificationForm" class="space-y-4">
+            <textarea id="adminNotificationMessage" placeholder="Enter notification message..." rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"></textarea>
+            <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700">Send to All Users</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <!-- BOTTOM NAVIGATION -->
+    <div class="bottom-nav">
+      <div class="flex justify-around items-center h-16 max-w-2xl mx-auto">
+        <button class="nav-item active flex flex-col items-center gap-1" onclick="navigateTo('feed')">
+          <i class="fas fa-home text-xl"></i>
+          <span class="text-xs">Feed</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-1" onclick="navigateTo('upload')">
+          <i class="fas fa-plus-circle text-xl"></i>
+          <span class="text-xs">Upload</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-1 relative" onclick="navigateTo('chatbot')">
+          <i class="fas fa-robot text-xl"></i>
+          <span class="text-xs">Chatbot</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-1 relative" onclick="navigateTo('notifications')">
+          <i class="fas fa-bell text-xl"></i>
+          <span class="text-xs">Alerts</span>
+          <span class="notification-badge" id="notificationBadge">0</span>
+        </button>
+        <button class="nav-item flex flex-col items-center gap-1" onclick="navigateTo('profile')">
+          <i class="fas fa-user text-xl"></i>
+          <span class="text-xs">Profile</span>
+        </button>
+        <button id="adminNavBtn" class="nav-item flex flex-col items-center gap-1 hidden" onclick="navigateTo('admin')">
+          <i class="fas fa-shield-alt text-xl"></i>
+          <span class="text-xs">Admin</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- DM MODAL -->
+  <div id="dmModal" class="modal">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md h-[80%] flex flex-col">
+      <!-- Conversation List View -->
+      <div id="conversationList" class="flex-1 flex flex-col">
+        <div class="p-4 border-b flex items-center justify-between">
+          <h3 class="text-lg font-bold">Messages</h3>
+          <button onclick="closeDM()" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4">
+          <div class="space-y-3" id="conversationsContainer">
+            <!-- Conversations will be added here -->
+          </div>
+        </div>
+      </div>
+      <!-- Chat View -->
+      <div id="chatView" class="flex-1 flex-col hidden">
+        <div class="p-4 border-b flex items-center gap-3">
+          <button onclick="backToConversations()" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <div id="chatHeader" class="flex items-center gap-3 flex-1">
+            <div id="chatAvatar" class="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center font-bold text-purple-600">
+              AS
+            </div>
+            <div>
+              <p id="chatName" class="font-medium">Alice Smith</p>
+              <p class="text-xs text-green-500">Online</p>
+            </div>
+          </div>
+          <button onclick="closeDM()" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div id="dmChatMessages" class="flex-1 overflow-y-auto p-4 space-y-3">
+          <!-- Messages will be added here -->
+        </div>
+        <div class="p-4 border-t">
+          <div class="flex gap-2">
+            <input type="text" id="dmInput" placeholder="Type a message..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none">
+            <button onclick="sendDM()" class="bg-purple-600 text-white px-4 rounded-lg hover:bg-purple-700">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- TERMS MODAL -->
+  <div id="termsModal" class="modal">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80%] flex flex-col p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-2xl font-bold">Terms & Conditions</h3>
+        <button onclick="closeTerms()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto space-y-4 text-gray-700">
+        <p class="font-semibold">1. Acceptance of Terms</p>
+        <p class="text-sm">By using EduSwap, you agree to these terms and conditions.</p>
+        <p class="font-semibold">2. User Responsibilities</p>
+        <p class="text-sm">Users must provide accurate information and maintain the confidentiality of their account credentials.</p>
+        <p class="font-semibold">3. Resource Sharing Guidelines</p>
+        <p class="text-sm">All shared resources must comply with copyright laws. Physical items must be returned by the agreed deadline.</p>
+        <p class="font-semibold">4. Trust Score System</p>
+        <p class="text-sm">Your trust score reflects your borrowing and lending behavior. Late returns or violations may affect your score.</p>
+        <p class="font-semibold">5. Prohibited Content</p>
+        <p class="text-sm">Do not share inappropriate, copyrighted, or illegal materials.</p>
+        <p class="font-semibold">6. Dispute Resolution</p>
+        <p class="text-sm">In case of disputes, contact the administrator through the platform.</p>
+      </div>
+      <button onclick="closeTerms()" class="mt-4 w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700">Close</button>
+    </div>
+  </div>
+  
+  <script type="module">
+    // ===== SUPABASE CONFIGURATION =====
+    // Replace these with your actual Supabase project credentials
+    const SUPABASE_URL = 'https://wstcoayjxkairjfbefdz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzdGNvYXlqeGthaXJqZmJlZmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDk4OTEsImV4cCI6MjA3ODUyNTg5MX0.gW-JIJdu2sWT0IooGOIOvNBsnHgSpfQFJY6LWV1-hV8';
+    
+    // Initialize Supabase client
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Admin email for privileged access
+    const ADMIN_EMAIL = 'eduswapsmsk2025@gmail.com';
+
+    // Global variables
+    let currentUser = null;
+    let isAdmin = false;
+    let resources = [];
+    let notifications = [];
+    let conversations = [];
+    let currentChatUser = null;
+    let chatMessages = {};
+    let verificationQueue = [];
+
+    // DOM Elements
+    const authPage = document.getElementById('authPage');
+    const mainApp = document.getElementById('mainApp');
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const uploadForm = document.getElementById('uploadForm');
+    const adminNotificationForm = document.getElementById('adminNotificationForm');
+
+    // ===== AUTH HANDLING =====
+    document.getElementById('loginTab').addEventListener('click', () => {
+      document.getElementById('loginTab').classList.add('bg-white', 'shadow');
+      document.getElementById('signupTab').classList.remove('bg-white', 'shadow');
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+    });
+
+    document.getElementById('signupTab').addEventListener('click', () => {
+      document.getElementById('signupTab').classList.add('bg-white', 'shadow');
+      document.getElementById('loginTab').classList.remove('bg-white', 'shadow');
+      signupForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+        
+        if (error) throw error;
+        
+        currentUser = data.user;
+        await checkAdminStatus(email);
+      } catch (error) {
+        showMessage('Error: ' + error.message);
+      }
+    });
+
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const studentId = document.getElementById('signupId').value;
+      const idCardFile = document.getElementById('idCardInput').files[0];
+      
+      try {
+        // Create auth user
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+          email: email,
+          password: password
+        });
+        
+        if (authError) throw authError;
+        
+        currentUser = authData.user;
+        
+        // Upload ID card if provided
+        let idCardUrl = null;
+        if (idCardFile) {
+          const fileName = `${currentUser.id}_${Date.now()}_${idCardFile.name}`;
+          const { data: uploadData, error: uploadError } = await supabaseClient.storage
+            .from('id-cards')
+            .upload(fileName, idCardFile);
+            
+          if (!uploadError) {
+            const { data: urlData } = supabaseClient.storage
+              .from('id-cards')
+              .getPublicUrl(fileName);
+            idCardUrl = urlData.publicUrl;
+          }
+        }
+        
+        // Save user profile
+        const { error: profileError } = await supabaseClient
+          .from('users')
+          .insert([{
+            id: currentUser.id,
+            name: name,
+            email: email,
+            student_id: studentId,
+            trust_score: 50,
+            id_card_url: idCardUrl,
+            verified: false,
+            created_at: new Date().toISOString()
+          }]);
+        
+        if (profileError) throw profileError;
+        
+        showMessage('Account created successfully! Please wait for admin verification.');
+        
+        // Log out and show login form
+        await supabaseClient.auth.signOut();
+        currentUser = null;
+        document.getElementById('loginTab').click();
+        signupForm.reset();
+      } catch (error) {
+        showMessage('Error: ' + error.message);
+      }
+    });
+
+    async function checkAdminStatus(email) {
+      isAdmin = email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      
+      try {
+        // Load user data
+        const { data, error } = await supabaseClient
+          .from('users')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        
+        if (data) {
+          document.getElementById('profileName').textContent = data.name;
+          document.getElementById('profileId').textContent = `Roll: ${data.student_id}`;
+          document.getElementById('trustScore').textContent = data.trust_score || 50;
+          
+          const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase();
+          document.getElementById('profileInitials').textContent = initials;
+        }
+        
+        login();
+      } catch (error) {
+        console.error("Error getting user data:", error);
+        login();
+      }
+    }
+
+    function login() {
+      authPage.classList.add('hidden');
+      mainApp.classList.remove('hidden');
+      
+      if (isAdmin) {
+        document.getElementById('adminNavBtn').classList.remove('hidden');
+      }
+      
+      loadResources();
+      loadNotifications();
+      loadConversations();
+      if (isAdmin) {
+        loadVerificationQueue();
+      }
+    }
+
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      isAdmin = false;
+      authPage.classList.remove('hidden');
+      mainApp.classList.add('hidden');
+      document.getElementById('adminNavBtn').classList.add('hidden');
+      loginForm.reset();
+      signupForm.reset();
+    }
+    window.logout = logout;
+
+    // ===== NAVIGATION =====
+    function navigateTo(page) {
+      const pages = ['feed', 'upload', 'chatbot', 'notifications', 'profile', 'admin'];
+      pages.forEach(p => {
+        document.getElementById(p + 'Page').classList.add('hidden');
+      });
+      document.getElementById(page + 'Page').classList.remove('hidden');
+
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      const navButtons = document.querySelectorAll('.nav-item');
+      navButtons.forEach(btn => {
+        const btnText = btn.querySelector('span').textContent.toLowerCase();
+        const matchMap = {
+          'feed': 'feed',
+          'upload': 'upload',
+          'chatbot': 'chatbot',
+          'alerts': 'notifications',
+          'profile': 'profile',
+          'admin': 'admin'
+        };
+        
+        if (matchMap[btnText] === page) {
+          btn.classList.add('active');
+        }
+      });
+    }
+    window.navigateTo = navigateTo;
+
+    // ===== RESOURCE FUNCTIONS =====
+    async function loadResources() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('resources')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        resources = data || [];
+        renderResources();
+        rebuildFilterChips();
+        updateResourceCounts();
+      } catch (error) {
+        console.error("Error loading resources:", error);
+        showMessage("Error loading resources");
+      }
+    }
+
+    function renderResources(filter = 'all', searchTerm = '') {
+      const container = document.getElementById('resourceContainer');
+      let filteredResources = resources;
+
+      if (filter !== 'all') {
+        filteredResources = resources.filter(r => r.subject === filter);
+      }
+
+      if (searchTerm) {
+        filteredResources = filteredResources.filter(r => 
+          r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          r.subject.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      container.innerHTML = filteredResources.map(resource => {
+        const isImage = resource.file_name && ['jpg', 'jpeg', 'png', 'gif', 'webp'].some(ext => 
+          resource.file_name.toLowerCase().endsWith('.' + ext)
+        );
+        
+        return `
+        <div class="resource-card card-hover shadow-md">
+          <div class="flex">
+            ${isImage ? `
+              <div class="w-32 flex items-center justify-center flex-shrink-0 bg-gray-100 overflow-hidden">
+                <img src="${resource.file_url || ''}" alt="${resource.title}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\\'fas ${resource.icon || 'fa-file-alt'} text-5xl ${(resource.color || 'bg-gray-100 text-gray-600').split(' ')[1]}\\'></i>';">
+              </div>
+            ` : `
+              <div class="w-32 ${resource.color || 'bg-gray-100 text-gray-600'} flex items-center justify-center flex-shrink-0">
+                <i class="fas ${resource.icon || 'fa-file-alt'} text-5xl"></i>
+              </div>
+            `}
+            <div class="flex-1 p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <h3 class="font-bold text-gray-800 mb-1">${resource.title}</h3>
+                  <p class="text-sm text-purple-600 mb-2">${resource.subject}</p>
+                  <div class="flex items-center gap-3 text-sm text-gray-600 mb-2">
+                    <span class="font-medium">${resource.owner_name}</span>
+                    <span class="text-gray-400">•</span>
+                    <span class="font-mono text-gray-500">Roll: ${resource.owner_id}</span>
+                  </div>
+                </div>
+                <button onclick="window.toggleSave('${resource.id}')" class="text-2xl ${resource.saved ? 'text-purple-600' : 'text-gray-300'} hover:text-purple-600">
+                  <i class="fas fa-bookmark"></i>
+                </button>
+              </div>
+
+            ${resource.type === 'physical' ? `
+              <div class="text-sm text-gray-600 mb-3 space-y-1">
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-map-marker-alt text-purple-500"></i>
+                  <span><strong>Location:</strong> ${resource.location}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-calendar text-purple-500"></i>
+                  <span><strong>Return by:</strong> ${resource.deadline}</span>
+                </div>
+              </div>
+            ` : `
+              <div class="text-sm text-gray-600 mb-3">
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-file-alt text-purple-500"></i>
+                  <span><strong>Type:</strong> Digital Resource</span>
+                </div>
+              </div>
+            `}
+
+            <div class="flex items-center justify-between pt-3 border-t">
+              <div class="flex items-center gap-2">
+                <div class="trust-badge text-xs">Trust: ${resource.trust_score}</div>
+                <button onclick="window.reportResource('${resource.id}')" class="text-red-500 hover:text-red-700 text-sm" title="Report this resource">
+                  <i class="fas fa-flag"></i>
+                </button>
+              </div>
+              <div class="flex gap-2">
+                ${resource.type === 'digital' ? `
+                  <button onclick="window.previewFile('${resource.id}')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200">
+                    <i class="fas fa-eye mr-1"></i> Preview
+                  </button>
+                  <button onclick="window.downloadFile('${resource.id}')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
+                    <i class="fas fa-download mr-1"></i> Download
+                  </button>
+                ` : `
+                  ${!resource.borrow_status ? `
+                    <button onclick="window.borrowResource('${resource.id}')" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700">
+                      <i class="fas fa-hand-holding mr-1"></i> Borrow
+                    </button>
+                  ` : resource.borrow_status === 'pending' ? `
+                    <button class="px-4 py-2 status-pending rounded-lg text-sm cursor-not-allowed">
+                      <i class="fas fa-clock mr-1"></i> Pending
+                    </button>
+                  ` : resource.borrow_status === 'approved' ? `
+                    <button onclick="window.returnResource('${resource.id}')" class="px-4 py-2 status-approved rounded-lg text-sm hover:opacity-90">
+                      <i class="fas fa-check mr-1"></i> Return
+                    </button>
+                  ` : `
+                    <button class="px-4 py-2 status-rejected rounded-lg text-sm cursor-not-allowed">
+                      <i class="fas fa-times mr-1"></i> Rejected
+                    </button>
+                  `}
+                `}
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    let existingFilters = new Set(['all']);
+    let filtersVisible = true;
+    
+    function toggleFilters() {
+      const filterSection = document.getElementById('filterSection');
+      filtersVisible = !filtersVisible;
+      filterSection.style.display = filtersVisible ? 'block' : 'none';
+    }
+    window.toggleFilters = toggleFilters;
+    
+    function clearFilters() {
+      document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+      });
+      document.querySelector('.filter-chip[data-filter="all"]').classList.add('active');
+      renderResources('all', document.getElementById('searchInput').value);
+    }
+    window.clearFilters = clearFilters;
+    
+    function rebuildFilterChips() {
+      const filterContainer = document.getElementById('filterChipsContainer');
+      const subjects = [...new Set(resources.map(r => r.subject))].sort();
+      
+      filterContainer.innerHTML = `
+        <div class="filter-chip active" data-filter="all">
+          <i class="fas fa-list mr-1"></i>All
+        </div>
+      `;
+      
+      const subjectIcons = {
+        'Computer Science': 'fa-laptop-code',
+        'Mathematics': 'fa-calculator',
+        'Physics': 'fa-atom',
+        'Electronics': 'fa-microchip',
+        'Chemistry': 'fa-flask',
+        'Mechanical': 'fa-cog',
+        'Biology': 'fa-dna',
+        'Civil Engineering': 'fa-building',
+        'Electrical Engineering': 'fa-bolt',
+        'English': 'fa-book-open',
+        'History': 'fa-landmark',
+        'default': 'fa-book'
+      };
+      
+      subjects.forEach(subject => {
+        const newChip = document.createElement('div');
+        newChip.className = 'filter-chip';
+        newChip.dataset.filter = subject;
+        
+        const icon = subjectIcons[subject] || subjectIcons['default'];
+        newChip.innerHTML = `<i class="fas ${icon} mr-1"></i>${subject}`;
+        
+        newChip.addEventListener('click', (e) => {
+          document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+          e.currentTarget.classList.add('active');
+          const filter = e.currentTarget.dataset.filter;
+          renderResources(filter, document.getElementById('searchInput').value);
+        });
+        
+        filterContainer.appendChild(newChip);
+      });
+      
+      filterContainer.querySelector('.filter-chip[data-filter="all"]').addEventListener('click', (e) => {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        renderResources('all', document.getElementById('searchInput').value);
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const searchTerm = e.target.value.trim();
+      const activeFilter = document.querySelector('.filter-chip.active').dataset.filter;
+      renderResources(activeFilter, searchTerm);
+    });
+
+    // Resource actions
+    async function toggleSave(id) {
+      const resource = resources.find(r => r.id === id);
+      if (!resource) return;
+      
+      resource.saved = !resource.saved;
+      
+      try {
+        await supabaseClient
+          .from('resources')
+          .update({ saved: resource.saved })
+          .eq('id', id);
+        
+        renderResources(document.querySelector('.filter-chip.active').dataset.filter, document.getElementById('searchInput').value);
+        showMessage(resource.saved ? 'Saved to your collection!' : 'Removed from saved items');
+      } catch (error) {
+        console.error("Error updating resource:", error);
+        showMessage("Error updating resource");
+      }
+    }
+    window.toggleSave = toggleSave;
+
+    async function borrowResource(id) {
+      const resource = resources.find(r => r.id === id);
+      if (!resource) return;
+      
+      try {
+        await supabaseClient
+          .from('resources')
+          .update({
+            borrow_status: 'pending',
+            borrower_id: currentUser.id,
+            borrower_name: document.getElementById('profileName').textContent,
+            borrower_roll: document.getElementById('profileId').textContent.replace('Roll: ', '')
+          })
+          .eq('id', id);
+        
+        await supabaseClient
+          .from('notifications')
+          .insert([{
+            user_id: currentUser.id,
+            message: `You requested to borrow "${resource.title}" from ${resource.owner_name}`,
+            type: 'info',
+            created_at: new Date().toISOString()
+          }]);
+        
+        await loadResources();
+        await loadNotifications();
+        showMessage('Borrow request sent! Waiting for approval.');
+      } catch (error) {
+        console.error("Error borrowing resource:", error);
+        showMessage("Error requesting resource");
+      }
+    }
+    window.borrowResource = borrowResource;
+
+    async function returnResource(id) {
+      try {
+        await supabaseClient
+          .from('resources')
+          .update({
+            borrow_status: null,
+            borrower_id: null,
+            borrower_name: null,
+            borrower_roll: null
+          })
+          .eq('id', id);
+        
+        await loadResources();
+        showMessage('Resource marked as returned. Thank you!');
+      } catch (error) {
+        console.error("Error returning resource:", error);
+        showMessage("Error returning resource");
+      }
+    }
+    window.returnResource = returnResource;
+
+    function previewFile(id) {
+      const resource = resources.find(r => r.id === id);
+      if (!resource || !resource.file_url) {
+        showMessage('📄 This is a sample resource. Upload your own resources to preview real files!');
+        return;
+      }
+      
+      const modal = document.createElement('div');
+      modal.className = 'modal active';
+      
+      const fileExtension = resource.file_name.split('.').pop().toLowerCase();
+      let previewContent = '';
+      
+      if (fileExtension === 'pdf') {
+        previewContent = `<iframe src="${resource.file_url}" class="w-full h-full rounded-lg"></iframe>`;
+      } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+        previewContent = `<img src="${resource.file_url}" class="max-w-full max-h-full object-contain rounded-lg" alt="${resource.title}">`;
+      } else {
+        previewContent = `
+          <div class="flex flex-col items-center justify-center h-full text-gray-600">
+            <i class="fas fa-file-alt text-6xl mb-4"></i>
+            <p class="text-lg font-medium">${resource.file_name}</p>
+            <p class="text-sm mt-2">Preview not available for this file type</p>
+            <button onclick="window.downloadFile('${id}')" class="mt-4 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+              <i class="fas fa-download mr-2"></i>Download File
+            </button>
+          </div>
+        `;
+      }
+      
+      modal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90%] flex flex-col p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-xl font-bold text-gray-800">${resource.title}</h3>
+              <p class="text-sm text-gray-600">${resource.file_name}</p>
+            </div>
+            <button onclick="this.closest('.modal').remove()" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+          <div class="flex-1 overflow-hidden bg-gray-50 rounded-lg flex items-center justify-center">
+            ${previewContent}
+          </div>
+          <div class="mt-4 flex gap-3 justify-end">
+            <button onclick="this.closest('.modal').remove()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+              Close
+            </button>
+            <button onclick="window.downloadFile('${id}'); this.closest('.modal').remove();" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+              <i class="fas fa-download mr-2"></i>Download
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    window.previewFile = previewFile;
+
+    function downloadFile(id) {
+      const resource = resources.find(r => r.id === id);
+      if (!resource || !resource.file_url) {
+        showMessage('💡 This is a sample resource. Upload your own resources to download real files!');
+        return;
+      }
+      
+      window.open(resource.file_url, '_blank');
+      showMessage('Opening ' + resource.file_name + '...');
+    }
+    window.downloadFile = downloadFile;
+
+    function reportResource(resourceId) {
+      const resource = resources.find(r => r.id === resourceId);
+      if (!resource) return;
+      
+      const modal = document.createElement('div');
+      modal.className = 'modal active';
+      modal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Report Resource</h3>
+            <button onclick="this.closest('.modal').remove()" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+          
+          <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+            <p class="font-medium text-gray-800">${resource.title}</p>
+            <p class="text-sm text-gray-600">${resource.subject} • ${resource.owner_name}</p>
+          </div>
+          
+          <form id="reportForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Reason for Report</label>
+              <select required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                <option value="">Select a reason...</option>
+                <option value="inappropriate">Inappropriate Content</option>
+                <option value="copyright">Copyright Violation</option>
+                <option value="not-returned">Item Not Returned</option>
+                <option value="damaged">Damaged Item</option>
+                <option value="misleading">Misleading Description</option>
+                <option value="spam">Spam or Fake Resource</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Additional Details</label>
+              <textarea rows="4" placeholder="Please provide more information about the issue..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" required></textarea>
+            </div>
+            
+            <div class="flex gap-3">
+              <button type="button" onclick="this.closest('.modal').remove()" class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">
+                Cancel
+              </button>
+              <button type="submit" class="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700">
+                Submit Report
+              </button>
+            </div>
+          </form>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      modal.querySelector('#reportForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const reason = e.target.querySelector('select').value;
+        const details = e.target.querySelector('textarea').value;
+        
+        try {
+          await supabaseClient
+            .from('notifications')
+            .insert([{
+              user_id: currentUser.id,
+              message: `Your report for "${resource.title}" has been submitted. Admins will review it shortly.`,
+              type: 'info',
+              created_at: new Date().toISOString()
+            }]);
+          
+          await loadNotifications();
+          modal.remove();
+          showMessage('Report submitted successfully! Admins will review it.');
+        } catch (error) {
+          console.error("Error submitting report:", error);
+          showMessage("Error submitting report");
+        }
+      });
+    }
+    window.reportResource = reportResource;
+
+    // ===== UPLOAD HANDLING =====
+    document.getElementById('resourceType').addEventListener('change', (e) => {
+      const physicalOptions = document.getElementById('physicalOptions');
+      if (e.target.value === 'physical') {
+        physicalOptions.classList.remove('hidden');
+      } else {
+        physicalOptions.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const fileName = file.name;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        document.getElementById('selectedFileName').textContent = `Selected: ${fileName} (${fileSize} MB)`;
+        document.getElementById('fileUploadText').textContent = 'File ready to upload!';
+        document.getElementById('fileUploadText').classList.add('text-green-600');
+        document.getElementById('fileUploadText').classList.remove('text-gray-600');
+        
+        const fileExtension = fileName.split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            let previewContainer = document.getElementById('imagePreviewContainer');
+            if (!previewContainer) {
+              previewContainer = document.createElement('div');
+              previewContainer.id = 'imagePreviewContainer';
+              previewContainer.className = 'mt-3 text-center';
+              document.querySelector('.upload-zone').appendChild(previewContainer);
+            }
+            previewContainer.innerHTML = `
+              <img src="${event.target.result}" alt="Preview" class="max-w-full max-h-48 rounded-lg shadow-md mx-auto">
+              <p class="text-xs text-gray-600 mt-2">Image preview</p>
+            `;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    });
+
+    document.getElementById('idCardInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const fileName = file.name;
+        document.getElementById('idCardFileName').textContent = `✓ ${fileName} uploaded`;
+        document.getElementById('idCardFileName').classList.remove('hidden');
+        document.getElementById('idCardUploadText').textContent = 'ID Card uploaded successfully!';
+        document.getElementById('idCardUploadText').classList.add('text-green-600');
+      }
+    });
+
+    uploadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        showMessage('Please select a file to upload');
+        return;
+      }
+      
+      const title = document.getElementById('resourceTitle').value;
+      const subject = document.getElementById('subjectInput').value.trim();
+      const description = document.getElementById('resourceDescription').value;
+      const resourceType = document.getElementById('resourceType').value;
+      const file = fileInput.files[0];
+      
+      if (!subject) {
+        showMessage('Please enter a subject category');
+        return;
+      }
+      
+      const fileName = file.name;
+      const fileExtension = fileName.split('.').pop().toLowerCase();
+      let icon = 'fa-file-alt';
+      let color = 'bg-gray-100 text-gray-600';
+      
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension)) {
+        icon = 'fa-image';
+        color = 'bg-pink-100 text-pink-600';
+      } else if (fileExtension === 'pdf') {
+        icon = 'fa-file-pdf';
+        color = 'bg-red-100 text-red-600';
+      } else if (['doc', 'docx'].includes(fileExtension)) {
+        icon = 'fa-file-word';
+        color = 'bg-blue-100 text-blue-600';
+      } else if (['xls', 'xlsx'].includes(fileExtension)) {
+        icon = 'fa-file-excel';
+        color = 'bg-green-100 text-green-600';
+      } else if (['ppt', 'pptx'].includes(fileExtension)) {
+        icon = 'fa-file-powerpoint';
+        color = 'bg-orange-100 text-orange-600';
+      } else if (resourceType === 'physical') {
+        icon = 'fa-box';
+        color = 'bg-purple-100 text-purple-600';
+      }
+      
+      try {
+        // Upload file to Supabase Storage
+        const fileKey = `${currentUser.id}_${Date.now()}_${fileName}`;
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
+          .from('resources')
+          .upload(fileKey, file);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: urlData } = supabaseClient.storage
+          .from('resources')
+          .getPublicUrl(fileKey);
+        
+        // Save resource to database
+        const resourceData = {
+          title: title,
+          subject: subject,
+          description: description,
+          type: resourceType,
+          file_name: fileName,
+          file_url: urlData.publicUrl,
+          owner_id: currentUser.id,
+          owner_name: document.getElementById('profileName').textContent,
+          owner_roll: document.getElementById('profileId').textContent.replace('Roll: ', ''),
+          trust_score: parseInt(document.getElementById('trustScore').textContent),
+          icon: icon,
+          color: color,
+          created_at: new Date().toISOString()
+        };
+        
+        if (resourceType === 'physical') {
+          resourceData.location = document.getElementById('resourceLocation').value || 'Not specified';
+          resourceData.deadline = document.getElementById('resourceDeadline').value || 'Not specified';
+        }
+        
+        const { error: insertError } = await supabaseClient
+          .from('resources')
+          .insert([resourceData]);
+        
+        if (insertError) throw insertError;
+        
+        showMessage('✅ Resource shared successfully!');
+        
+        uploadForm.reset();
+        document.getElementById('selectedFileName').textContent = '';
+        document.getElementById('fileUploadText').textContent = 'Click to upload file or drag and drop';
+        document.getElementById('fileUploadText').classList.remove('text-green-600');
+        document.getElementById('fileUploadText').classList.add('text-gray-600');
+        document.getElementById('physicalOptions').classList.add('hidden');
+        
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        if (previewContainer) {
+          previewContainer.remove();
+        }
+        
+        navigateTo('feed');
+        await loadResources();
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (error) {
+        console.error("Error uploading resource:", error);
+        showMessage("Error uploading resource: " + error.message);
+      }
+    });
+
+    // ===== CHATBOT =====
+    function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      const chatMessages = document.getElementById('chatbotMessages');
+      
+      chatMessages.innerHTML += `
+        <div class="bg-purple-600 text-white rounded-lg p-3 max-w-[80%] ml-auto">
+          <p class="text-sm">${message}</p>
+        </div>
+      `;
+
+      input.value = '';
+
+      setTimeout(() => {
+        chatMessages.innerHTML += `
+          <div class="bg-purple-100 rounded-lg p-3 max-w-[80%]">
+            <p class="text-sm text-gray-800">I can help you find resources, track your borrowed items, or answer questions about the platform. What would you like to know?</p>
+          </div>
+        `;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 1000);
+
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    window.sendMessage = sendMessage;
+
+    document.getElementById('chatInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // ===== NOTIFICATIONS =====
+    async function loadNotifications() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('notifications')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        notifications = data || [];
+        renderNotifications();
+      } catch (error) {
+        console.error("Error loading notifications:", error);
+      }
+    }
+
+    function renderNotifications() {
+      const container = document.getElementById('notificationsList');
+      container.innerHTML = notifications.map(notif => {
+        const iconClass = notif.type === 'success' ? 'fa-check-circle text-green-500' :
+                         notif.type === 'warning' ? 'fa-exclamation-triangle text-yellow-500' :
+                         notif.type === 'request' ? 'fa-hand-holding text-purple-500' :
+                         'fa-info-circle text-blue-500';
+        
+        return `
+          <div class="bg-white rounded-lg shadow p-4 flex items-start gap-3">
+            <i class="fas ${iconClass} text-xl mt-1"></i>
+            <div class="flex-1">
+              <p class="text-gray-800 text-sm">${notif.message}</p>
+              <p class="text-xs text-gray-500 mt-1">${notif.created_at ? new Date(notif.created_at).toLocaleString() : 'Just now'}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      document.getElementById('notificationBadge').textContent = notifications.length;
+    }
+
+    // ===== DM CONVERSATIONS =====
+    function loadConversations() {
+      conversations = [
+        { id: 1, name: 'Alice Smith', initials: 'AS', lastMessage: 'Can I borrow your book?', time: '2m' },
+        { id: 2, name: 'Bob Johnson', initials: 'BJ', lastMessage: 'Thanks for the notes!', time: '1h' },
+        { id: 3, name: 'Sarah Chen', initials: 'SC', lastMessage: 'When can I pick it up?', time: '3h' }
+      ];
+      renderConversations();
+    }
+
+    function renderConversations() {
+      const container = document.getElementById('conversationsContainer');
+      container.innerHTML = conversations.map(conversation => `
+        <div class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer" onclick="window.openChat('${conversation.name}', '${conversation.initials}')">
+          <div class="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center font-bold text-purple-600">
+            ${conversation.initials}
+          </div>
+          <div class="flex-1">
+            <p class="font-medium">${conversation.name}</p>
+            <p class="text-sm text-gray-600">${conversation.lastMessage}</p>
+          </div>
+          <span class="text-xs text-gray-400">${conversation.time}</span>
+        </div>
+      `).join('');
+    }
+
+    function openDM() {
+      document.getElementById('dmModal').classList.add('active');
+      document.getElementById('conversationList').classList.remove('hidden');
+      document.getElementById('conversationList').classList.add('flex');
+      document.getElementById('chatView').classList.add('hidden');
+    }
+    window.openDM = openDM;
+
+    function closeDM() {
+      document.getElementById('dmModal').classList.remove('active');
+    }
+    window.closeDM = closeDM;
+
+    function openChat(userName, initials) {
+      currentChatUser = userName;
+      
+      document.getElementById('conversationList').classList.add('hidden');
+      document.getElementById('conversationList').classList.remove('flex');
+      document.getElementById('chatView').classList.remove('hidden');
+      document.getElementById('chatView').classList.add('flex');
+      
+      document.getElementById('chatName').textContent = userName;
+      document.getElementById('chatAvatar').textContent = initials;
+      
+      if (!chatMessages[userName]) {
+        chatMessages[userName] = [
+          { sender: userName, text: "Hi! Can I borrow your book?", time: "10:30 AM" },
+          { sender: "You", text: "Sure! When do you need it?", time: "10:32 AM" },
+          { sender: userName, text: "Tomorrow would be great!", time: "10:33 AM" }
+        ];
+      }
+      
+      renderChatMessages(userName);
+    }
+    window.openChat = openChat;
+
+    function backToConversations() {
+      document.getElementById('chatView').classList.add('hidden');
+      document.getElementById('chatView').classList.remove('flex');
+      document.getElementById('conversationList').classList.remove('hidden');
+      document.getElementById('conversationList').classList.add('flex');
+      currentChatUser = null;
+    }
+    window.backToConversations = backToConversations;
+
+    function renderChatMessages(userName) {
+      const chatViewMessages = document.getElementById('dmChatMessages');
+      const messages = chatMessages[userName] || [];
+      
+      chatViewMessages.innerHTML = messages.map(msg => {
+        if (msg.sender === "You") {
+          return `
+            <div class="flex justify-end">
+              <div class="bg-purple-600 text-white rounded-lg px-4 py-2 max-w-[70%]">
+                <p class="text-sm">${msg.text}</p>
+                <p class="text-xs opacity-75 mt-1">${msg.time}</p>
+              </div>
+            </div>
+          `;
+        } else {
+          return `
+            <div class="flex justify-start">
+              <div class="bg-gray-100 text-gray-800 rounded-lg px-4 py-2 max-w-[70%]">
+                <p class="text-sm">${msg.text}</p>
+                <p class="text-xs text-gray-500 mt-1">${msg.time}</p>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+      
+      chatViewMessages.scrollTop = chatViewMessages.scrollHeight;
+    }
+
+    function sendDM() {
+      const input = document.getElementById('dmInput');
+      const text = input.value.trim();
+      
+      if (!text || !currentChatUser) return;
+      
+      const now = new Date();
+      const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      
+      if (!chatMessages[currentChatUser]) {
+        chatMessages[currentChatUser] = [];
+      }
+      
+      chatMessages[currentChatUser].push({
+        sender: "You",
+        text: text,
+        time: time
+      });
+      
+      renderChatMessages(currentChatUser);
+      input.value = '';
+      
+      setTimeout(() => {
+        chatMessages[currentChatUser].push({
+          sender: currentChatUser,
+          text: "Got it! Thanks for the quick reply!",
+          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        });
+        renderChatMessages(currentChatUser);
+      }, 2000);
+    }
+    window.sendDM = sendDM;
+
+    document.getElementById('dmInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendDM();
+      }
+    });
+
+    // ===== PROFILE FUNCTIONS =====
+    function showSavedItems() {
+      const savedResources = resources.filter(r => r.saved);
+      if (savedResources.length === 0) {
+        showMessage('No saved items yet. Start saving resources from the feed!');
+      } else {
+        navigateTo('feed');
+        const container = document.getElementById('resourceContainer');
+        container.innerHTML = savedResources.map(resource => `
+          <div class="resource-card card-hover shadow-md">
+            <div class="p-4">
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex-1">
+                  <h3 class="font-bold text-gray-800 mb-1">${resource.title}</h3>
+                  <p class="text-sm text-purple-600 mb-2">${resource.subject}</p>
+                </div>
+                <button onclick="window.toggleSave('${resource.id}')" class="text-2xl text-purple-600 hover:text-purple-800">
+                  <i class="fas fa-bookmark"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+    window.showSavedItems = showSavedItems;
+
+    function showTerms() {
+      document.getElementById('termsModal').classList.add('active');
+    }
+    window.showTerms = showTerms;
+
+    function closeTerms() {
+      document.getElementById('termsModal').classList.remove('active');
+    }
+    window.closeTerms = closeTerms;
+
+    // ===== ADMIN FUNCTIONS =====
+    async function loadVerificationQueue() {
+      if (!isAdmin) return;
+      
+      try {
+        const { data, error } = await supabaseClient
+          .from('users')
+          .select('*')
+          .eq('verified', false)
+          .order('created_at', { ascending: true });
+        
+        if (error) throw error;
+        
+        verificationQueue = data || [];
+        renderVerificationQueue();
+        updateVerificationCount();
+      } catch (error) {
+        console.error("Error loading verification queue:", error);
+      }
+    }
+
+    function renderVerificationQueue() {
+      if (!isAdmin) return;
+      
+      const container = document.getElementById('verificationQueue');
+      
+      if (verificationQueue.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-check-circle text-4xl mb-2"></i>
+            <p>No pending verifications</p>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = verificationQueue.map(user => `
+        <div class="bg-gray-50 rounded-lg p-3 flex items-center justify-between" id="verify-user-${user.id}">
+          <div class="flex-1">
+            <p class="font-medium text-gray-800">${user.name}</p>
+            <p class="text-sm text-gray-600">${user.email}</p>
+            <p class="text-xs text-gray-500 mt-1">ID: ${user.student_id}</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="window.previewIDCardForVerification('${user.id}')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+              <i class="fas fa-eye"></i>
+            </button>
+            <button onclick="window.approveVerification('${user.id}')" class="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600">
+              <i class="fas fa-check"></i>
+            </button>
+            <button onclick="window.rejectVerification('${user.id}')" class="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function previewIDCardForVerification(userId) {
+      const user = verificationQueue.find(u => u.id === userId);
+      if (!user) return;
+      
+      const modal = document.createElement('div');
+      modal.className = 'modal active';
+      modal.innerHTML = `
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-xl font-bold text-gray-800">${user.name}</h3>
+              <p class="text-sm text-gray-600">${user.email}</p>
+            </div>
+            <button onclick="this.closest('.modal').remove()" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+          <div class="border-2 border-gray-200 rounded-lg p-8 bg-gray-50">
+            ${user.id_card_url ? `
+              <img src="${user.id_card_url}" alt="ID Card" class="max-w-full mx-auto rounded-lg shadow-lg">
+            ` : `
+              <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm mx-auto">
+                <div class="text-center mb-4">
+                  <div class="w-32 h-32 bg-purple-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <i class="fas fa-user text-6xl text-purple-600"></i>
+                  </div>
+                  <h4 class="text-lg font-bold text-gray-800">${user.name}</h4>
+                  <p class="text-sm text-gray-600 mt-1">Student ID: ${user.student_id}</p>
+                </div>
+                <div class="border-t pt-4 space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Email:</span>
+                    <span class="font-medium">${user.email}</span>
+                  </div>
+                </div>
+                <div class="mt-4 pt-4 border-t text-center">
+                  <div class="bg-gray-800 text-white py-2 rounded">
+                    <p class="text-xs font-mono">Samskruti College of Engineering</p>
+                  </div>
+                </div>
+              </div>
+            `}
+          </div>
+          <div class="mt-6 flex gap-3 justify-end">
+            <button onclick="this.closest('.modal').remove()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+              Close
+            </button>
+            <button onclick="window.approveVerification('${userId}'); this.closest('.modal').remove();" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+              <i class="fas fa-check mr-2"></i>Approve
+            </button>
+            <button onclick="window.rejectVerification('${userId}'); this.closest('.modal').remove();" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+              <i class="fas fa-times mr-2"></i>Reject
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    window.previewIDCardForVerification = previewIDCardForVerification;
+    
+    async function approveVerification(userId) {
+      try {
+        await supabaseClient
+          .from('users')
+          .update({ verified: true })
+          .eq('id', userId);
+        
+        const userIndex = verificationQueue.findIndex(u => u.id === userId);
+        if (userIndex > -1) {
+          const user = verificationQueue[userIndex];
+          verificationQueue.splice(userIndex, 1);
+          showMessage(`✅ ${user.name} has been verified and approved!`);
+        }
+        
+        renderVerificationQueue();
+        updateVerificationCount();
+      } catch (error) {
+        console.error("Error approving verification:", error);
+        showMessage("Error approving user");
+      }
+    }
+    window.approveVerification = approveVerification;
+    
+    async function rejectVerification(userId) {
+      try {
+        await supabaseClient
+          .from('users')
+          .delete()
+          .eq('id', userId);
+        
+        const userIndex = verificationQueue.findIndex(u => u.id === userId);
+        if (userIndex > -1) {
+          const user = verificationQueue[userIndex];
+          verificationQueue.splice(userIndex, 1);
+          showMessage(`❌ Verification rejected for ${user.name}. User has been notified.`);
+        }
+        
+        renderVerificationQueue();
+        updateVerificationCount();
+      } catch (error) {
+        console.error("Error rejecting verification:", error);
+        showMessage("Error rejecting user");
+      }
+    }
+    window.rejectVerification = rejectVerification;
+    
+    function updateVerificationCount() {
+      const countDisplay = document.getElementById('verificationCountDisplay');
+      if (countDisplay) {
+        countDisplay.textContent = verificationQueue.length;
+      }
+    }
+
+    async function updateResourceCounts() {
+      try {
+        const { count: userCount } = await supabaseClient
+          .from('users')
+          .select('*', { count: 'exact', head: true });
+        
+        const { count: resourceCount } = await supabaseClient
+          .from('resources')
+          .select('*', { count: 'exact', head: true });
+        
+        document.getElementById('totalUsersCount').textContent = userCount || 0;
+        document.getElementById('activeResourcesCount').textContent = resourceCount || 0;
+      } catch (error) {
+        console.error("Error updating counts:", error);
+      }
+    }
+
+    adminNotificationForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const message = document.getElementById('adminNotificationMessage').value.trim();
+      if (!message) {
+        showMessage('Please enter a notification message');
+        return;
+      }
+      
+      try {
+        // Get all user IDs
+        const { data: users, error: usersError } = await supabaseClient
+          .from('users')
+          .select('id');
+        
+        if (usersError) throw usersError;
+        
+        // Send notification to all users
+        const notificationPromises = users.map(user => 
+          supabaseClient
+            .from('notifications')
+            .insert([{
+              user_id: user.id,
+              message: `📢 Admin Announcement: ${message}`,
+              type: 'info',
+              created_at: new Date().toISOString()
+            }])
+        );
+        
+        await Promise.all(notificationPromises);
+        
+        showMessage('Notification sent to all users!');
+        adminNotificationForm.reset();
+        await loadNotifications();
+      } catch (error) {
+        console.error("Error sending notification:", error);
+        showMessage("Error sending notification");
+      }
+    });
+
+    function showAllUsers() {
+      showMessage('Loading user list...');
+    }
+    window.showAllUsers = showAllUsers;
+
+    function showActiveResources() {
+      showMessage('Loading active resources...');
+    }
+    window.showActiveResources = showActiveResources;
+
+    function showPendingVerifications() {
+      navigateTo('admin');
+    }
+    window.showPendingVerifications = showPendingVerifications;
+
+    function showReports() {
+      showMessage('No reports at this time');
+    }
+    window.showReports = showReports;
+
+    // ===== UTILITY FUNCTIONS =====
+    function showMessage(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg z-[10000]';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // ===== INITIALIZE =====
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        currentUser = session.user;
+        checkAdminStatus(currentUser.email);
+      } else {
+        currentUser = null;
+        authPage.classList.remove('hidden');
+        mainApp.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
